@@ -1,0 +1,13 @@
+{
+    "name": "Heat Generator: Ranked fill from all classes points",
+    "author": "Jauler",
+    "author_uri": "https://github.com/jauler",
+    "description": "Generates ranked fill of pilots from cumulative points of all classes",
+    "info_uri": "https://github.com/Jauler/rh_heatgenerator_rankedfill_allclasses/",
+    "license": "MIT",
+    "license_uri": "https://github.com/Jauler/rh_heatgenerator_rankedfill_allclasses/blob/main/LICENSE",
+    "version": "1.0.0",
+    "required_rhapi_version": "1.0",
+    "update_uri": null,
+    "text_domain": null
+}
