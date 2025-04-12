@@ -26,23 +26,42 @@ def generateHeats(rhapi, generate_args=None):
     # Get all pilots
     pilots = rhapi.db.pilots
     for pilot in pilots:
-        pilot_results[pilot.id] = 0
+        pilot_results[pilot.id] = {"points": 0, "consecutives_base": 0, "consecutives": 0.0, "callsign": pilot.callsign}
 
-    # Get all classes
+    # Get all classes ranking
     raceclasses = rhapi.db.raceclasses
     for raceclass in raceclasses:
-        results = rhapi.db.raceclass_results(raceclass.id)
-        if results is None:
-            continue
-        for entry in results["by_race_time"]:
-            if "points" not in entry:
-                continue
-            pilot_results[entry["pilot_id"]] += entry["points"]
+        ranking = rhapi.db.raceclass_ranking(raceclass.id)
+        if ranking:
+            for entry in ranking["ranking"]:
+                if "points" not in entry:
+                    continue
+                pilot_results[entry["pilot_id"]]["points"] += entry["points"]
+
+    # Get all pilots consecutives for secondary sorting key
+    event_results = rhapi.db.event_results()
+    if event_results:
+        for entry in event_results["by_consecutives"]:
+            pilot_results[entry["pilot_id"]]["consecutives_base"] = entry["consecutives_base"]
+            pilot_results[entry["pilot_id"]]["consecutives"] = entry["consecutives_raw"]
 
     # sort by points
-    pilot_results = dict(sorted(pilot_results.items(), key=lambda item: item[1], reverse=True))
+    pilot_results = dict(
+            sorted(
+                pilot_results.items(), key=lambda item: (
+                    -item[1]["points"],
+                    -item[1]["consecutives_base"],
+                    item[1]["consecutives"],
+                    item[1]["callsign"]
+                )
+            )
+        )
     pilots = list(pilot_results.keys())
     heats = [pilots[i:i+pilots_per_heat] for i in range(0, len(pilots), 4)]
+
+    # Some debug info
+    for pilot_id, pilot_result in pilot_results.items():
+        logging.info(f"Pilot {pilot_id} -> {pilot_result}")
 
     # generate plan
     plan = []
